@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mantenimiento Preventivo — Verallia</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0c10;--bg2:#111318;--bg3:#181c24;--border:#1e2330;
+  --accent:#f59e0b;--accent2:#3b82f6;
+  --vencido:#ef4444;--proximo:#f59e0b;--aldia:#22c55e;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#4b5563;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:16px;}
+
+/* HEADER */
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:62px;position:sticky;top:0;z-index:200;}
+.logo{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:22px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;}
+.logo span{color:var(--text2);font-weight:400;}
+#clock{font-family:'Share Tech Mono',monospace;font-size:15px;color:var(--text2);}
+#header-kpis{display:flex;gap:10px;align-items:center;}
+.hkpi{font-size:13px;font-weight:700;letter-spacing:.8px;padding:4px 12px;border-radius:2px;text-transform:uppercase;font-family:'Rajdhani',sans-serif;}
+.hkpi-v{background:rgba(239,68,68,.12);color:var(--vencido);border:1px solid rgba(239,68,68,.25);}
+.hkpi-c{background:rgba(220,38,38,.18);color:#f87171;border:1px solid rgba(220,38,38,.35);}
+.hkpi-p{background:rgba(245,158,11,.12);color:var(--proximo);border:1px solid rgba(245,158,11,.25);}
+.hkpi-a{background:rgba(34,197,94,.1);color:var(--aldia);border:1px solid rgba(34,197,94,.25);}
+
+/* NAV */
+.main-nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 22px;display:flex;gap:2px;}
+.main-nav button{background:none;border:none;color:var(--text3);font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600;letter-spacing:1px;padding:13px 18px;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase;}
+.main-nav button:hover{color:var(--text2);}
+.main-nav button.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.panel{display:none;padding:20px;}
+.panel.active{display:block;}
+
+/* LINEA TABS */
+.linea-tabs{display:flex;gap:5px;margin-bottom:16px;flex-wrap:wrap;}
+.linea-tabs button{background:var(--bg3);border:1px solid var(--border);color:var(--text3);font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;letter-spacing:1px;padding:7px 16px;cursor:pointer;border-radius:2px;transition:all .2s;text-transform:uppercase;}
+.linea-tabs button:hover{color:var(--text2);border-color:var(--text3);}
+.linea-tabs button.active{background:rgba(245,158,11,.1);border-color:var(--accent);color:var(--accent);}
+.tandem-tag{font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--accent2);margin-left:5px;}
+
+/* FILTROS */
+.search-row{display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap;}
+.search-row input{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Barlow',sans-serif;font-size:15px;padding:7px 13px;border-radius:2px;width:230px;outline:none;transition:border-color .2s;}
+.search-row input:focus{border-color:var(--accent);}
+.search-row input::placeholder{color:var(--text3);}
+.fbtn{background:var(--bg3);border:1px solid var(--border);font-size:13px;font-weight:700;letter-spacing:.8px;padding:6px 13px;cursor:pointer;border-radius:2px;text-transform:uppercase;transition:all .15s;font-family:'Rajdhani',sans-serif;}
+.fbtn-all{color:var(--text2);}.fbtn-v{color:var(--vencido);}.fbtn-c{color:#f87171;}
+.fbtn-p{color:var(--proximo);}.fbtn-a{color:var(--aldia);}.fbtn-s{color:var(--text3);}
+.fbtn.active,.fbtn:hover{background:rgba(255,255,255,.04);border-color:currentColor;}
+
+/* TABLA */
+.table-outer{overflow:auto;border:1px solid var(--border);border-radius:3px;}
+.mant-table{border-collapse:collapse;font-size:15px;}
+.mant-table th{background:#0f1117;color:var(--text3);font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px;font-size:13px;text-transform:uppercase;padding:11px 13px;text-align:center;border:1px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:10;}
+.mant-table th.th-pieza{text-align:left;min-width:250px;max-width:320px;}
+.mant-table th.th-resp{text-align:left;min-width:160px;}
+.mant-table th.th-frec{min-width:65px;}
+.mant-table th.th-sec{min-width:115px;}
+.mant-table td{border:1px solid var(--border);vertical-align:middle;}
+.mant-table tr:hover td{background:rgba(255,255,255,.018);}
+
+/* CELDAS BASE */
+td.td-pieza{padding:11px 14px;color:var(--text);font-weight:600;font-size:15px;background:var(--bg2);min-width:250px;max-width:320px;white-space:normal;line-height:1.4;}
+td.td-resp{padding:9px 13px;color:var(--text2);font-size:14px;background:var(--bg2);min-width:160px;white-space:normal;line-height:1.3;}
+td.td-frec{padding:9px 11px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:14px;color:var(--text3);background:var(--bg2);}
+
+/* CELDA SECCION individual */
+td.cell-sec{text-align:center;min-width:115px;padding:7px 8px;background:var(--bg);vertical-align:middle;}
+td.cell-sec.empty{background:var(--bg);}
+.sec-inner{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.sec-badge{display:inline-block;font-size:13px;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:2px;text-transform:uppercase;font-family:'Rajdhani',sans-serif;line-height:1.5;white-space:nowrap;}
+.sb-VENCIDO{background:rgba(239,68,68,.2);color:var(--vencido);border:1px solid rgba(239,68,68,.35);}
+.sb-CRITICO{background:rgba(220,38,38,.3);color:#f87171;border:1px solid rgba(220,38,38,.55);animation:pRed 1.6s infinite;}
+.sb-PROXIMO{background:rgba(245,158,11,.18);color:var(--proximo);border:1px solid rgba(245,158,11,.35);}
+.sb-ALDIA{background:rgba(34,197,94,.14);color:var(--aldia);border:1px solid rgba(34,197,94,.3);}
+.sb-SINDATOS{background:rgba(55,65,81,.25);color:var(--text3);border:1px solid var(--border);}
+@keyframes pRed{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.3);}50%{box-shadow:0 0 8px 3px rgba(220,38,38,.25);}}
+.sec-date{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--text2);}
+.sec-days{font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;}
+.dn{color:var(--vencido);}.dw{color:var(--proximo);}.dok{color:var(--aldia);}
+
+/* CELDA "TODAS LAS SECCIONES" — fondo de color como en el modelo */
+td.cell-todas{padding:0;vertical-align:middle;}
+.todas-wrap{display:flex;align-items:center;gap:16px;padding:12px 20px;border-left:4px solid transparent;}
+.tw-VENCIDO{background:rgba(239,68,68,.13);border-left-color:var(--vencido);}
+.tw-CRITICO{background:rgba(220,38,38,.2);border-left-color:#f87171;}
+.tw-PROXIMO{background:rgba(245,158,11,.12);border-left-color:var(--proximo);}
+.tw-ALDIA{background:rgba(34,197,94,.1);border-left-color:var(--aldia);}
+.tw-SINDATOS{background:rgba(55,65,81,.1);border-left-color:var(--text3);}
+.todas-label{font-size:11px;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;color:var(--text3);text-transform:uppercase;white-space:nowrap;}
+.todas-badge{font-size:14px;font-weight:700;font-family:'Rajdhani',sans-serif;letter-spacing:.5px;text-transform:uppercase;padding:4px 12px;border-radius:2px;white-space:nowrap;}
+.tb-VENCIDO{background:rgba(239,68,68,.25);color:var(--vencido);border:1px solid rgba(239,68,68,.4);}
+.tb-CRITICO{background:rgba(220,38,38,.35);color:#f87171;border:1px solid rgba(220,38,38,.6);}
+.tb-PROXIMO{background:rgba(245,158,11,.22);color:var(--proximo);border:1px solid rgba(245,158,11,.4);}
+.tb-ALDIA{background:rgba(34,197,94,.18);color:var(--aldia);border:1px solid rgba(34,197,94,.35);}
+.tb-SINDATOS{background:rgba(55,65,81,.3);color:var(--text3);border:1px solid var(--border);}
+.todas-fecha{font-family:'Share Tech Mono',monospace;font-size:14px;color:var(--text);}
+.todas-dias{font-family:'Share Tech Mono',monospace;font-size:15px;font-weight:700;}
+
+/* ROW GRUPO */
+.row-grupo td{background:#0d1015;padding:5px 14px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);}
+
+/* LOADING */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px;gap:14px;}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading p{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--text3);}
+.err-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:var(--vencido);padding:20px 24px;border-radius:3px;font-family:'Share Tech Mono',monospace;font-size:13px;line-height:1.8;}
+
+/* CALENDARIO */
+.cal-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+.cal-header button{background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-size:18px;width:32px;height:32px;cursor:pointer;border-radius:2px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.cal-header button:hover{border-color:var(--accent);color:var(--accent);}
+.cal-header h2{font-family:'Rajdhani',sans-serif;font-size:21px;font-weight:700;letter-spacing:2px;text-transform:uppercase;min-width:200px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-dn{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);text-align:center;padding:6px;}
+.cal-cell{background:var(--bg2);border:1px solid var(--border);border-radius:2px;min-height:85px;padding:6px;transition:border-color .2s;}
+.cal-cell:hover{border-color:var(--text3);}
+.cal-cell.other{opacity:.2;}
+.cal-cell.today{border-color:var(--accent);background:rgba(245,158,11,.04);}
+.cal-dt{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--text3);margin-bottom:3px;}
+.cal-cell.today .cal-dt{color:var(--accent);font-weight:700;}
+.cal-ev{display:block;font-size:11px;padding:2px 5px;border-radius:1px;margin:1px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Barlow',sans-serif;font-weight:500;}
+.ev-VENCIDO{background:rgba(239,68,68,.18);color:var(--vencido);}
+.ev-CRITICO{background:rgba(220,38,38,.25);color:#f87171;}
+.ev-PROXIMO{background:rgba(245,158,11,.15);color:var(--proximo);}
+.ev-ALDIA{background:rgba(34,197,94,.12);color:var(--aldia);}
+.cal-more{font-size:10px;color:var(--text3);margin-top:2px;}
+
+/* DASHBOARD */
+.sec-title{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:26px;}
+.kpi-box{background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:20px 24px;min-width:140px;text-align:center;border-top:3px solid transparent;}
+.kpi-box.kv{border-top-color:var(--vencido);}.kpi-box.kc{border-top-color:#f87171;}
+.kpi-box.kp{border-top-color:var(--proximo);}.kpi-box.ka{border-top-color:var(--aldia);}
+.kpi-box.kt{border-top-color:var(--accent2);}
+.kpi-n{font-family:'Share Tech Mono',monospace;font-size:38px;}
+.kpi-box.kv .kpi-n{color:var(--vencido);}.kpi-box.kc .kpi-n{color:#f87171;}
+.kpi-box.kp .kpi-n{color:var(--proximo);}.kpi-box.ka .kpi-n{color:var(--aldia);}
+.kpi-box.kt .kpi-n{color:var(--accent2);}
+.kpi-l{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-top:4px;}
+.linea-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.lc{background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:14px 16px;cursor:pointer;transition:border-color .2s;}
+.lc:hover{border-color:var(--accent);}
+.lc-title{font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;letter-spacing:1px;color:var(--text);margin-bottom:9px;}
+.lc-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-bottom:8px;display:flex;}
+.lc-stats{display:flex;gap:11px;flex-wrap:wrap;font-size:13px;align-items:center;}
+.lcs{display:flex;align-items:center;gap:4px;}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Verallia <span>/ Mant. Preventivo</span></div>
+  <div id="header-kpis"></div>
+  <div id="clock"></div>
+</header>
+
+<nav class="main-nav">
+  <button class="active" data-panel="tablero">Tablero</button>
+  <button data-panel="calendario">Calendario</button>
+  <button data-panel="dashboard">Dashboard</button>
+</nav>
+
+<div class="panel active" id="panel-tablero">
+  <div class="linea-tabs" id="linea-tabs"></div>
+  <div class="search-row">
+    <input type="text" id="search-input" placeholder="Buscar pieza o responsable…">
+    <button class="fbtn fbtn-all active" data-f="">Todos</button>
+    <button class="fbtn fbtn-c" data-f="CRITICO">Crítico</button>
+    <button class="fbtn fbtn-v" data-f="VENCIDO">Vencido</button>
+    <button class="fbtn fbtn-p" data-f="PROXIMO">Próximo</button>
+    <button class="fbtn fbtn-a" data-f="ALDIA">Al día</button>
+    <button class="fbtn fbtn-s" data-f="SINDATOS">Sin datos</button>
+  </div>
+  <div id="loading-tablero" class="loading">
+    <div class="spinner"></div>
+    <p>Conectando con Google Sheet…</p>
+  </div>
+  <div id="tablero-content" style="display:none;"></div>
+</div>
+
+<div class="panel" id="panel-calendario">
+  <div class="cal-header">
+    <button id="cal-prev">‹</button>
+    <h2 id="cal-title"></h2>
+    <button id="cal-next">›</button>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+</div>
+
+<div class="panel" id="panel-dashboard">
+  <p class="sec-title">KPIs Globales</p>
+  <div class="kpi-row" id="kpi-row"></div>
+  <p class="sec-title">Resumen por Línea</p>
+  <div class="linea-cards" id="linea-cards"></div>
+</div>
+
+<script>
+const SCRIPT_URL  = "https://script.google.com/macros/s/AKfycbxK75RrYk4h8n2PzVY5SH6DMlmBIqdiTmHodbu7tIzdmLQaPIvEPsoziZYgjHCO0VQL/exec";
+const REFRESH_SEG = 60;
+
+const LINEA_SECS = {
+  L21:{secs:[1,2,3,4,5,6,7,8],tandem:null},
+  L22:{secs:[1,2,3,4,5,6,7,8],tandem:null},
+  L23A:{secs:[1,2,3,4,5,6],tandem:'L23B'},
+  L23B:{secs:[7,8,9,10,11,12],tandem:'L23A'},
+  L24:{secs:[1,2,3,4,5,6,7,8,9,10],tandem:null},
+  L31A:{secs:[7,8,9,10,11,12],tandem:'L31B'},
+  L31B:{secs:[1,2,3,4,5,6],tandem:'L31A'},
+  L32:{secs:[1,2,3,4,5,6,7,8],tandem:null},
+  L33A:{secs:[1,2,3,4,5,6,7,8],tandem:'L33B'},
+  L33B:{secs:[9,10,11,12,13,14,15,16],tandem:'L33A'}
+};
+
+function eKey(e){
+  const m={'VENCIDO':'VENCIDO','CRÍTICO':'CRITICO','CRITICO':'CRITICO',
+    'PRÓXIMO':'PROXIMO','PROXIMO':'PROXIMO','AL DÍA':'ALDIA','AL DIA':'ALDIA',
+    'SIN DATOS':'SINDATOS'};
+  return m[(e||'').toUpperCase().trim()]||'SINDATOS';
+}
+function eLabel(k){
+  return {VENCIDO:'VENC',CRITICO:'CRÍT',PROXIMO:'PRÓX',ALDIA:'OK',SINDATOS:'S/D'}[k]||k;
+}
+function eText(k){
+  return {VENCIDO:'VENCIDO',CRITICO:'CRÍTICO',PROXIMO:'PRÓXIMO',ALDIA:'AL DÍA',SINDATOS:'SIN DATOS'}[k]||k;
+}
+
+let allData=[], currentLinea='L21', currentFiltro='', currentSearch='', calYear, calMonth;
+
+// Reloj
+setInterval(()=>{
+  const n=new Date();
+  document.getElementById('clock').textContent=
+    n.toLocaleDateString('es-AR',{weekday:'short',day:'2-digit',month:'short'})+' '+
+    n.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+},1000);
+
+// Nav
+document.querySelectorAll('.main-nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.main-nav button').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.getElementById('panel-'+b.dataset.panel).classList.add('active');
+  if(b.dataset.panel==='calendario') renderCalendar();
+}));
+
+// Filtros
+document.querySelectorAll('.fbtn').forEach(b=>b.addEventListener('click',()=>{
+  currentFiltro=b.dataset.f;
+  document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  renderTablero();
+}));
+document.getElementById('search-input').addEventListener('input',e=>{
+  currentSearch=e.target.value.toLowerCase(); renderTablero();
+});
+
+// Carga datos
+async function loadData(){
+  try{
+    const r=await fetch(SCRIPT_URL+'?ts='+Date.now());
+    const raw=await r.json();
+    // Incluir filas con LINEA y MANTENIMIENTO aunque no tengan ID
+    allData=raw.filter(x=>x.LINEA&&x.MANTENIMIENTO).map(x=>({...x,_estado:eKey(x.ESTADO)}));
+    if(!calYear){const t=new Date();calYear=t.getFullYear();calMonth=t.getMonth();}
+    initTabs();
+    renderTablero();
+    renderDashboard();
+    updateHeaderKpis();
+    document.getElementById('loading-tablero').style.display='none';
+    document.getElementById('tablero-content').style.display='block';
+  }catch(err){
+    document.getElementById('loading-tablero').innerHTML=`
+      <div class="err-box">❌ No se pudo conectar.<br><br>
+      Verificá la URL del Apps Script y que esté desplegado para "Cualquier persona".<br><br>
+      Error: ${err.message}</div>`;
+  }
+}
+loadData();
+setInterval(loadData,REFRESH_SEG*1000);
+
+let tabsInit=false;
+function initTabs(){
+  if(tabsInit)return; tabsInit=true;
+  const el=document.getElementById('linea-tabs');
+  Object.keys(LINEA_SECS).forEach(l=>{
+    const t=LINEA_SECS[l].tandem;
+    const btn=document.createElement('button');
+    btn.innerHTML=l+(t?`<span class="tandem-tag">↔${t}</span>`:'');
+    if(l===currentLinea)btn.classList.add('active');
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.linea-tabs button').forEach(x=>x.classList.remove('active'));
+      btn.classList.add('active'); currentLinea=l; renderTablero();
+    });
+    el.appendChild(btn);
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// TABLERO
+// ══════════════════════════════════════════════════════════
+function renderTablero(){
+  const el=document.getElementById('tablero-content');
+  const secs=LINEA_SECS[currentLinea]?.secs||[];
+  const lineaData=allData.filter(r=>r.LINEA===currentLinea);
+  const todas=lineaData.filter(r=>String(r.SECCION).toLowerCase()==='todas');
+  const especificas=lineaData.filter(r=>String(r.SECCION).toLowerCase()!=='todas');
+
+  const piezaMap={};
+  especificas.forEach(r=>{
+    const k=r.MANTENIMIENTO.trim();
+    if(!piezaMap[k])piezaMap[k]={_resp:r.RESPONSABLE,_frec:r.FRECUENCIA};
+    piezaMap[k][parseInt(r.SECCION)]=r;
+  });
+
+  const okR=r=>{
+    if(currentSearch&&!r.MANTENIMIENTO.toLowerCase().includes(currentSearch)&&
+       !(r.RESPONSABLE||'').toLowerCase().includes(currentSearch))return false;
+    if(currentFiltro&&r._estado!==currentFiltro)return false;
+    return true;
+  };
+  const filtTodas=todas.filter(okR);
+  const filtPiezas=Object.keys(piezaMap).filter(k=>{
+    const data=piezaMap[k];
+    if(currentSearch&&!k.toLowerCase().includes(currentSearch)&&
+       !(data._resp||'').toLowerCase().includes(currentSearch))return false;
+    if(currentFiltro&&!secs.map(s=>data[s]).filter(Boolean).some(r=>r._estado===currentFiltro))return false;
+    return true;
+  });
+
+  let html=`<div class="table-outer"><table class="mant-table">
+    <thead><tr>
+      <th class="th-pieza">Pieza / Mantenimiento</th>
+      <th class="th-resp">Responsable</th>
+      <th class="th-frec">Frec.</th>
+      ${secs.map(s=>`<th class="th-sec">SEC ${s}</th>`).join('')}
+    </tr></thead><tbody>`;
+
+  // ── BLOQUE TODAS LAS SECCIONES ──
+  if(filtTodas.length){
+    html+=`<tr class="row-grupo"><td colspan="${3+secs.length}">▸ Aplica a todas las secciones de ${currentLinea}</td></tr>`;
+    filtTodas.forEach(r=>{
+      const dias=parseDias(r.DIAS_REST);
+      const dc=diasClass(dias), dt=diasTxt(dias);
+      const k=r._estado;
+      html+=`<tr>
+        <td class="td-pieza">${r.MANTENIMIENTO}</td>
+        <td class="td-resp">${r.RESPONSABLE||'—'}</td>
+        <td class="td-frec">${r.FRECUENCIA||'—'}</td>
+        <td class="cell-todas" colspan="${secs.length}">
+          <div class="todas-wrap tw-${k}">
+            <span class="todas-label">Todas las secciones</span>
+            <span class="todas-badge tb-${k}">${eText(k)}</span>
+            ${r.PROX_VENC?`<span class="todas-fecha">📅 ${fmtD(r.PROX_VENC)}</span>`:''}
+            ${dt?`<span class="todas-dias ${dc}">${dt}</span>`:''}
+          </div>
+        </td>
+      </tr>`;
+    });
+  }
+
+  // ── BLOQUE POR SECCIÓN ──
+  if(filtPiezas.length){
+    html+=`<tr class="row-grupo"><td colspan="${3+secs.length}">▸ Por sección</td></tr>`;
+    filtPiezas.forEach(k=>{
+      const data=piezaMap[k];
+      html+=`<tr>
+        <td class="td-pieza">${k}</td>
+        <td class="td-resp">${data._resp||'—'}</td>
+        <td class="td-frec">${data._frec||'—'}</td>
+        ${secs.map(s=>{
+          const r=data[s];
+          if(!r)return`<td class="cell-sec empty"></td>`;
+          const dias=parseDias(r.DIAS_REST);
+          const dc=diasClass(dias),dt=diasTxt(dias);
+          return`<td class="cell-sec">
+            <div class="sec-inner">
+              <span class="sec-badge sb-${r._estado}">${eLabel(r._estado)}</span>
+              ${r.PROX_VENC?`<span class="sec-date">${fmtD(r.PROX_VENC)}</span>`:''}
+              ${dt?`<span class="sec-days ${dc}">${dt}</span>`:''}
+            </div>
+          </td>`;
+        }).join('')}
+      </tr>`;
+    });
+  }
+
+  if(!filtTodas.length&&!filtPiezas.length){
+    html+=`<tr><td colspan="${3+secs.length}" style="text-align:center;padding:30px;color:var(--text3);font-style:italic">Sin resultados</td></tr>`;
+  }
+  html+=`</tbody></table></div>`;
+  el.innerHTML=html;
+}
+
+// ══════════════════════════════════════════════════════════
+// CALENDARIO
+// ══════════════════════════════════════════════════════════
+document.getElementById('cal-prev').addEventListener('click',()=>{calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();});
+document.getElementById('cal-next').addEventListener('click',()=>{calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();});
+
+function renderCalendar(){
+  if(!calYear)return;
+  const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('cal-title').textContent=meses[calMonth]+' '+calYear;
+  const first=new Date(calYear,calMonth,1),last=new Date(calYear,calMonth+1,0);
+  const today=new Date();today.setHours(0,0,0,0);
+  const evMap={};
+  allData.forEach(r=>{
+    if(!r.PROX_VENC||r._estado==='SINDATOS')return;
+    const d=new Date(r.PROX_VENC);d.setHours(0,0,0,0);
+    const key=d.toISOString().split('T')[0];
+    if(!evMap[key])evMap[key]=[];
+    evMap[key].push(r);
+  });
+  const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  let h=dias.map(d=>`<div class="cal-dn">${d}</div>`).join('');
+  for(let i=0;i<first.getDay();i++)h+=`<div class="cal-cell other"></div>`;
+  for(let d=1;d<=last.getDate();d++){
+    const dt=new Date(calYear,calMonth,d);dt.setHours(0,0,0,0);
+    const key=dt.toISOString().split('T')[0];
+    const isT=dt.getTime()===today.getTime();
+    const evs=evMap[key]||[];
+    const show=evs.slice(0,4),more=evs.length-4;
+    h+=`<div class="cal-cell${isT?' today':''}">
+      <div class="cal-dt">${d}</div>
+      ${show.map(r=>`<span class="cal-ev ev-${r._estado}" title="${r.LINEA} S${r.SECCION} — ${r.MANTENIMIENTO}">${r.LINEA} ${r.MANTENIMIENTO.slice(0,15)}</span>`).join('')}
+      ${more>0?`<div class="cal-more">+${more} más</div>`:''}
+    </div>`;
+  }
+  const tot=first.getDay()+last.getDate();
+  for(let i=0;i<(tot%7===0?0:7-tot%7);i++)h+=`<div class="cal-cell other"></div>`;
+  document.getElementById('cal-grid').innerHTML=h;
+}
+
+// ══════════════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════════════
+function renderDashboard(){
+  const cnt={VENCIDO:0,CRITICO:0,PROXIMO:0,ALDIA:0,SINDATOS:0};
+  allData.forEach(r=>{if(cnt[r._estado]!==undefined)cnt[r._estado]++;});
+  document.getElementById('kpi-row').innerHTML=`
+    <div class="kpi-box kc"><div class="kpi-n">${cnt.CRITICO}</div><div class="kpi-l">Críticos</div></div>
+    <div class="kpi-box kv"><div class="kpi-n">${cnt.VENCIDO}</div><div class="kpi-l">Vencidos</div></div>
+    <div class="kpi-box kp"><div class="kpi-n">${cnt.PROXIMO}</div><div class="kpi-l">Próximos</div></div>
+    <div class="kpi-box ka"><div class="kpi-n">${cnt.ALDIA}</div><div class="kpi-l">Al día</div></div>
+    <div class="kpi-box kt"><div class="kpi-n">${allData.length}</div><div class="kpi-l">Total reg.</div></div>
+  `;
+  document.getElementById('linea-cards').innerHTML=Object.keys(LINEA_SECS).map(l=>{
+    const rs=allData.filter(r=>r.LINEA===l);
+    if(!rs.length)return`<div class="lc"><div class="lc-title">${l} <span style="font-size:12px;color:var(--text3)">sin datos aún</span></div></div>`;
+    const v=rs.filter(r=>r._estado==='VENCIDO').length,c=rs.filter(r=>r._estado==='CRITICO').length;
+    const p=rs.filter(r=>r._estado==='PROXIMO').length,a=rs.filter(r=>r._estado==='ALDIA').length;
+    const tot=rs.length,pct=Math.round(a/tot*100);
+    return`<div class="lc" onclick="goLinea('${l}')">
+      <div class="lc-title">${l} <span style="font-size:12px;color:var(--text3)">${tot} reg.</span></div>
+      <div class="lc-bar">
+        <div style="background:#f87171;width:${c/tot*100}%;height:100%"></div>
+        <div style="background:var(--vencido);width:${v/tot*100}%;height:100%"></div>
+        <div style="background:var(--proximo);width:${p/tot*100}%;height:100%"></div>
+        <div style="background:var(--aldia);width:${a/tot*100}%;height:100%"></div>
+      </div>
+      <div class="lc-stats">
+        ${c?`<span class="lcs"><span class="dot" style="background:#f87171"></span><span style="color:#f87171">${c} crít.</span></span>`:''}
+        <span class="lcs"><span class="dot" style="background:var(--vencido)"></span><span style="color:var(--vencido)">${v} venc.</span></span>
+        <span class="lcs"><span class="dot" style="background:var(--proximo)"></span><span style="color:var(--proximo)">${p} próx.</span></span>
+        <span class="lcs"><span class="dot" style="background:var(--aldia)"></span><span style="color:var(--aldia)">${a} ok</span></span>
+        <span style="margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:12px;color:${pct>50?'var(--aldia)':'var(--vencido)'}">${pct}%</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function goLinea(l){
+  currentLinea=l;
+  document.querySelectorAll('.main-nav button').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  document.querySelector('[data-panel="tablero"]').classList.add('active');
+  document.getElementById('panel-tablero').classList.add('active');
+  document.querySelectorAll('.linea-tabs button').forEach(b=>{
+    b.classList.toggle('active',b.textContent.trim().startsWith(l));
+  });
+  renderTablero();
+}
+
+function updateHeaderKpis(){
+  const v=allData.filter(r=>r._estado==='VENCIDO').length;
+  const c=allData.filter(r=>r._estado==='CRITICO').length;
+  const p=allData.filter(r=>r._estado==='PROXIMO').length;
+  const a=allData.filter(r=>r._estado==='ALDIA').length;
+  document.getElementById('header-kpis').innerHTML=`
+    ${c?`<span class="hkpi hkpi-c">⚡ ${c} crít.</span>`:''}
+    <span class="hkpi hkpi-v">✖ ${v} venc.</span>
+    <span class="hkpi hkpi-p">⚠ ${p} próx.</span>
+    <span class="hkpi hkpi-a">✓ ${a} ok</span>
+  `;
+}
+
+function parseDias(v){const n=parseInt(v);return isNaN(n)?null:n;}
+function diasClass(d){return d===null?'':d<0?'dn':d<=10?'dw':'dok';}
+function diasTxt(d){return d===null?'':(d>0?'+':'')+d+'d';}
+function fmtD(s){
+  if(!s)return'';
+  const d=new Date(s);
+  return isNaN(d)?s:d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'2-digit'});
+}
+</script>
+</body>
+</html>
